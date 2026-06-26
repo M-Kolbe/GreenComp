@@ -12294,10 +12294,20 @@ function gcApplyConfig(){
   if (!GC_CONFIG) return;
   let firstRun = false;
   try { firstRun = !localStorage.getItem('gcConfigApplied'); } catch(e){}
-  // Seed the NA's reflection questions if the participant has none of their own yet
-  if (GC_CONFIG.customQuestions && Array.isArray(GC_CONFIG.customQuestions)
+  // Reflection questions: a LOCKED edition ALWAYS uses the NA's baked set (file:// shares localStorage —
+  // never inherit the master's/stale questions); the unlocked master only seeds when empty.
+  if (LOCKED_EDITION){
+    try { state.customQuestions = Array.isArray(GC_CONFIG.customQuestions) ? JSON.parse(JSON.stringify(GC_CONFIG.customQuestions)) : []; } catch(e){ state.customQuestions = []; }
+  } else if (GC_CONFIG.customQuestions && Array.isArray(GC_CONFIG.customQuestions)
       && (!state.customQuestions || state.customQuestions.length === 0)){
     try { state.customQuestions = JSON.parse(JSON.stringify(GC_CONFIG.customQuestions)); } catch(e){}
+  }
+  // v11.x: per-competence content edits. A LOCKED edition ALWAYS reflects the NA's baked edits (or original
+  // content if none) — never inherit the master's/stale edits from shared file:// localStorage.
+  if (LOCKED_EDITION){
+    try { state.compEdits = (GC_CONFIG.compEdits && typeof GC_CONFIG.compEdits === 'object') ? JSON.parse(JSON.stringify(GC_CONFIG.compEdits)) : {}; if (typeof gcApplyCompEdits === 'function') gcApplyCompEdits(); } catch(e){}
+  } else if (GC_CONFIG.compEdits && typeof GC_CONFIG.compEdits === 'object'){
+    try { state.compEdits = JSON.parse(JSON.stringify(GC_CONFIG.compEdits)); if (typeof gcApplyCompEdits === 'function') gcApplyCompEdits(); } catch(e){}
   }
   if (firstRun){
     if (GC_CONFIG.lang) state.lang = GC_CONFIG.lang; // start in the NA's language (English still switchable)
@@ -16607,8 +16617,9 @@ function naWizGenerate(){
     event: { name:(ec.event.name||'').trim(), date:(ec.event.date||'').trim(), location:(ec.event.location||'').trim(), naName:(ec.event.naName||'').trim(), naEmail:(ec.event.naEmail||'').trim(), intro:(ec.event.intro||'').trim() },
     lang: ec.lang || 'en',
     focusComps: focus,
-    customQuestions: ec.includeQuestions ? (state.customQuestions||[]).filter(q => !focus || focus.indexOf(q.compId)!==-1) : [],
-    returnEmail: (ec.event.naEmail||'').trim()
+    customQuestions: ec.includeQuestions ? (state.customQuestions||[]).filter(q => (!focus || focus.indexOf(q.compId)!==-1) && (state.qExcluded||[]).indexOf(q.id)===-1) : [],
+    returnEmail: (ec.event.naEmail||'').trim(),
+    compEdits: (state.compEdits && Object.keys(state.compEdits).length) ? state.compEdits : undefined
   };
   exportEdition('participant', cfg);
   naWizClose();
@@ -16642,7 +16653,7 @@ function naWizRender(){
       + '<div class="naw-focus-actions"><button type="button" class="naw-mini" onclick="naWizSetAllComps(true)">'+(de?'Alle':'All')+'</button><button type="button" class="naw-mini" onclick="naWizSetAllComps(false)">'+(de?'Keine':'None')+'</button></div>'
       + '<div class="naw-comps">'+COMPETENCES.map(c=>{ const on = ec.focusComps.length===0 || ec.focusComps.indexOf(c.id)!==-1; return '<label class="naw-comp"><input type="checkbox" '+(on?'checked':'')+' onchange="naWizToggleComp(\''+c.id+'\',this.checked)"><span class="naw-comp-id">'+c.id+'</span> '+esc(c.name[state.lang])+'</label>'; }).join('')+'</div>';
   } else if (naWizStep===3){
-    const qn = (state.customQuestions||[]).filter(q => !ec.focusComps.length || ec.focusComps.indexOf(q.compId)!==-1).length;
+    const qn = (state.customQuestions||[]).filter(q => (!ec.focusComps.length || ec.focusComps.indexOf(q.compId)!==-1) && (state.qExcluded||[]).indexOf(q.id)===-1).length;
     html = '<div class="naw-h">'+(de?'3 · Reflexionsfragen':'3 · Reflection questions')+'</div><div class="naw-sub">'+(de?'Deine eigenen Reflexionsfragen werden eingebettet.':'Your own reflection questions get embedded.')+'</div>'
       + '<label class="naw-toggle"><input type="checkbox" id="naw-incq" '+(ec.includeQuestions?'checked':'')+'> '+(de?'Eigene Reflexionsfragen mitliefern':'Include my reflection questions')+'</label>'
       + '<div class="naw-note">'+(qn>0 ? (qn+' '+(de?'eigene Frage(n) — werden mitgegeben.':'custom question(s) — will be included.')) : (de?'Noch keine eigenen Fragen. Im Kompetenz-Detail hinzufügbar (optional).':'No custom questions yet. Add them in the competence detail (optional).'))+'</div>';
@@ -16653,7 +16664,7 @@ function naWizRender(){
       + ((ec.event.date||ec.event.location)?'<div class="naw-sum-row"><b>'+(de?'Wann/Wo':'When/Where')+':</b> '+esc([ec.event.date,ec.event.location].filter(Boolean).join(' · '))+'</div>':'')
       + '<div class="naw-sum-row"><b>'+(de?'Sprache':'Language')+':</b> '+esc((ec.lang||'en').toUpperCase())+' + EN</div>'
       + '<div class="naw-sum-row"><b>'+(de?'Kompetenzen':'Competences')+':</b> '+focusN+(focusN===COMPETENCES.length?' <span class="naw-allnote">'+(de?'alle':'all')+'</span>':'')+'</div>'
-      + '<div class="naw-sum-row"><b>'+(de?'Reflexionsfragen':'Questions')+':</b> '+(ec.includeQuestions?(state.customQuestions||[]).filter(q => !ec.focusComps.length || ec.focusComps.indexOf(q.compId)!==-1).length:'0')+'</div>'
+      + '<div class="naw-sum-row"><b>'+(de?'Reflexionsfragen':'Questions')+':</b> '+(ec.includeQuestions?(state.customQuestions||[]).filter(q => (!ec.focusComps.length || ec.focusComps.indexOf(q.compId)!==-1) && (state.qExcluded||[]).indexOf(q.id)===-1).length:'0')+'</div>'
       + '<div class="naw-sum-row"><b>'+(de?'Rückkanal':'Return')+':</b> '+(esc(ec.event.naEmail)||'<i>'+(de?'(keine Mail)':'(no email)')+'</i>')+'</div></div>'
       + (focusN===COMPETENCES.length ? '<div class="naw-note naw-note-warn">⚠ '+(de?'Diese Edition deckt ALLE 12 Kompetenzen ab. Für einen Fokus: oben im TCA-Plan Kompetenzen wählen, dann den Wizard erneut öffnen.':'This edition covers ALL 12 competences. To focus it, pick competences in your TCA Plan above, then reopen the wizard.')+'</div>' : '')
       + '<div class="naw-note">'+(de?'Eine eigenständige HTML-Datei wird heruntergeladen — verteile sie an die Teilnehmer (USB, Mail, Intranet). 100% offline.':'A standalone HTML file downloads — distribute it to participants (USB, mail, intranet). 100% offline.')+'</div>'
