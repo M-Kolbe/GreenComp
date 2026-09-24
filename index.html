@@ -170,6 +170,7 @@ body[data-locked-edition="participant"] .naw-cta, body[data-locked-edition="bene
 .assess-comp-link{background:none;border:none;padding:0;font-family:inherit;font-size:inherit;font-weight:inherit;color:var(--fg);cursor:pointer;text-align:left;border-bottom:1px dotted var(--fg-faint);transition:color .12s,border-color .12s}
 .assess-comp-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
 .pref-card{margin-top:16px}
+.card.pref-card{background:linear-gradient(135deg,var(--accent-soft),var(--bg-elev));border:1.5px solid var(--accent)}
 .pref-sub{font-size:12.5px;color:var(--fg-muted);margin-bottom:14px;line-height:1.5}
 .pref-group{margin-bottom:14px}
 .pref-comp{font-size:13px;font-weight:700;color:var(--fg);margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -7322,6 +7323,8 @@ body[data-persona="na"] .na-preview-banner {
       <div id="snapPrompt" class="snap-prompt-wrap"></div>
       <div class="snap-list" id="snapList"></div>
     </div>
+    <!-- v11.1: reflection questions sit right after the snapshots, before feedback and sending -->
+    <div id="participantReflection"></div>
     <!-- #3: independent free-text feedback to the NA -->
     <div class="card" id="feedbackCard">
       <div class="card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="Feedback to your NA (optional)">Feedback to your NA (optional)</span><button class="info-i" type="button" onclick="toggleInfoPop(event, this)" data-info="Anything you want to tell your National Agency — independent of the ratings. It travels with your CSV/PDF and e-mail. Stays local until you send."><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button></div>
@@ -7372,7 +7375,6 @@ body[data-persona="na"] .na-preview-banner {
       </div>
       </details>
     </div>
-    <div id="participantReflection"></div>
   </section>
 
   <!-- View: TCA Mapping -->
@@ -14809,9 +14811,11 @@ function renderParticipantReflection(){
   const qs = state.customQuestions || [];
   if (!qs.length){ host.innerHTML = ''; return; }
   if (!state.reflections || typeof state.reflections !== 'object') state.reflections = {};
-  let h = '<details class="card pref-card">'
-    + '<summary class="pref-summary">💭 '+(de?'Reflexionsfragen':'Reflection questions')+' <span class="pref-count">'+qs.length+'</span></summary>'
-    + '<div class="pref-sub">'+(de?'Nimm dir Zeit — diese Fragen helfen, dein Wachstum in Worte zu fassen.':'Take a moment — these questions help you put your growth into words.')+' '
+  const ev = (state.editionConfig && state.editionConfig.event) || {};
+  const from = ev.naName ? gcEsc(ev.naName) : (de?'deiner NA':'your NA');
+  let h = '<details class="card pref-card" open>'
+    + '<summary class="pref-summary">💭 '+(de?'Deine Reflexionsfragen — von ':'Your reflection questions — from ')+from+' <span class="pref-count">'+qs.length+'</span></summary>'
+    + '<div class="pref-sub">'+(de?'Nimm dir Zeit — diese Fragen helfen, dein Wachstum in Worte zu fassen. Deine Antworten kommen mit in dein Ergebnis-PDF.':'Take a moment — these questions help you put your growth into words. Your answers are included in your results PDF.')+' '
     + makeInfo(de?'Fragen, die deine Nationalagentur für dieses TCA hinterlegt hat. Deine Antworten bleiben lokal in deinem Browser.':'Questions your National Agency set for this TCA. Your answers stay local in your browser.')+'</div>';
   const byComp = {};
   qs.forEach(q => { const k = q.compId || '_'; (byComp[k] = byComp[k] || []).push(q); });
