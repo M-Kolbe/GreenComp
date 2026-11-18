@@ -6455,6 +6455,19 @@ body[data-persona="na"] .na-preview-banner {
 .film-offline b { font-size: 17px; }
 .film-foot { padding: 10px 20px 12px; font-size: 12px; color: rgba(231, 251, 233, 0.75); background: #0b2d1e; text-align: center; }
 body.film-open { overflow: hidden; }
+.save-modal { max-width: 560px; }
+.save-lead { margin: 0 0 14px; color: var(--fg-muted); }
+.save-opts { display: grid; gap: 12px; }
+.save-opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 16px; cursor: pointer;
+  border: 1.5px solid var(--border); background: var(--bg-soft); color: var(--fg); font-family: inherit; transition: border-color .2s, transform .2s, box-shadow .2s; }
+.save-opt:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 10px 24px -14px rgba(21, 128, 61, 0.6); }
+.save-opt-film { border-color: rgba(251, 191, 36, 0.7); background: linear-gradient(135deg, rgba(254, 240, 138, 0.25), rgba(251, 191, 36, 0.12)); }
+.save-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: var(--accent); color: #fff; }
+.save-opt-film .save-ic { background: linear-gradient(135deg, #fef08a 0%, #fbbf24 100%); color: #1f2a0d; }
+.save-tx b { display: block; font-size: 15px; } .save-tx span { display: block; font-size: 13px; color: var(--fg-muted); margin-top: 2px; line-height: 1.4; }
+.save-state { min-height: 20px; margin-top: 12px; font-size: 13px; color: var(--fg-muted); }
+.save-state.ok { color: var(--accent); font-weight: 600; } .save-state.err { color: var(--danger, #b91c1c); }
+#saveOv.busy .save-opt { pointer-events: none; opacity: 0.6; }
 @media (max-width: 640px) { .film-ov { padding: 0; } .film-box { border-radius: 0; } .hero-film-dur { display: none; } }
 .tour-box {
   background: var(--bg-elev);
@@ -6979,7 +6992,7 @@ body.film-open { overflow: hidden; }
 <div class="gc-tools-label" data-i18n="Toolkit">Toolkit</div>
   <button class="app-header-btn header-welcome-btn" id="welcomeBtn" title="Welcome & your guide" onclick="openWelcome()" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> <span data-i18n="Guide">Guide</span></button>
   <button class="app-header-btn header-translate-btn" title="Add your own language — translate the whole toolkit (NA killer feature)" onclick="openAbout();setAboutTab('languages')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span data-i18n="Translate">Translate</span></button>
-  <button class="app-header-btn" id="saveToolkitBtn" title="Save this toolkit as an HTML file (like 'Save As') — keep your own copy" onclick="gcSaveToolkit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="Save toolkit">Save toolkit</span></button>
+  <button class="app-header-btn" id="saveToolkitBtn" title="Save your own copy — the toolkit as one HTML file, or toolkit + film as a ZIP (fully offline)" onclick="gcSaveToolkit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="Save toolkit">Save toolkit</span></button>
   <button class="app-header-btn" id="aboutBtn" title="About this toolkit" onclick="openAbout()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> <span data-i18n="About">About</span></button>
 <div class="gc-tools-sep"></div>
 <div class="gc-tools-label" data-i18n="Your data">Your data</div>
@@ -7913,6 +7926,31 @@ body.film-open { overflow: hidden; }
 </main>
 
 <!-- Tour Overlay -->
+<!-- Save toolkit: choice between HTML only and toolkit + film (ZIP) -->
+<div class="modal-backdrop" id="saveOv" onclick="if(event.target===this)gcCloseSave()">
+  <div class="modal save-modal">
+    <div class="modal-h">
+      <span class="id-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      <h2 data-i18n="Save toolkit">Save toolkit</h2>
+      <button class="modal-close" onclick="gcCloseSave()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="save-lead" data-i18n="Keep your own copy. Choose what to save:">Keep your own copy. Choose what to save:</p>
+      <div class="save-opts">
+        <button class="save-opt" onclick="gcSaveToolkitHtml()">
+          <span class="save-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          <span class="save-tx"><b data-i18n="Toolkit only">Toolkit only</b><span data-i18n="One HTML file · about 3 MB · works offline; the film streams when online">One HTML file · about 3 MB · works offline; the film streams when online</span></span>
+        </button>
+        <button class="save-opt save-opt-film" onclick="gcSaveToolkitZip()">
+          <span class="save-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9.2v5.6a.6.6 0 0 0 .9.5l4.6-2.8a.6.6 0 0 0 0-1l-4.6-2.8a.6.6 0 0 0-.9.5z" fill="currentColor"/></svg></span>
+          <span class="save-tx"><b data-i18n="Toolkit + film">Toolkit + film</b><span data-i18n="ZIP · about 52 MB · everything offline, including the 6-minute film">ZIP · about 52 MB · everything offline, including the 6-minute film</span></span>
+        </button>
+      </div>
+      <div class="save-state" id="saveZipState" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Film: integrated video player (the video file lives next to index.html in media/) -->
 <div class="film-ov" id="filmOv" role="dialog" aria-modal="true" aria-labelledby="filmTitle" onclick="if(event.target===this)closeFilm()">
   <div class="film-box">
@@ -12999,6 +13037,11 @@ const TRANSLATIONS = {
   "GreenComp in EU Policy": "GreenComp in der EU-Politik",
   "Created by Michael Kolbe": "Erstellt von Michael Kolbe",
   "Watch the film": "Film ansehen",
+  "Keep your own copy. Choose what to save:": "Eigene Kopie behalten. Was möchtest du speichern?",
+  "Toolkit only": "Nur das Toolkit",
+  "One HTML file · about 3 MB · works offline; the film streams when online": "Eine HTML-Datei · ca. 3 MB · läuft offline; der Film wird online gestreamt",
+  "Toolkit + film": "Toolkit + Film",
+  "ZIP · about 52 MB · everything offline, including the 6-minute film": "ZIP · ca. 52 MB · alles offline, inklusive 6-Minuten-Film",
   "The film · 6 min · English": "Der Film · 6 Min. · Englisch",
   "From academic paper to everyday practice": "Vom akademischen Papier zur gelebten Praxis",
   "The film needs an internet connection.": "Für den Film braucht es eine Internetverbindung.",
@@ -17923,25 +17966,119 @@ async function sha256Hex(text){
   } catch(e){ return null; }
 }
 // === Export Edition — locked HTML for a specific persona ===
+// === Save toolkit: choose "HTML only" or "Toolkit + film (ZIP, fully offline)" ===
+function gcBuildToolkitHtml(){
+  var root = document.documentElement.cloneNode(true);
+  var body = root.querySelector('body');
+  if (body){ body.removeAttribute('data-persona'); body.classList.remove('locked-edition'); body.classList.remove('film-open'); }
+  root.removeAttribute('data-theme');
+  root.querySelectorAll('.view').forEach(function(v){ if (v.id === 'v-intro') v.classList.add('active'); else v.classList.remove('active'); });
+  var naw = root.querySelector('#naWizModal'); if (naw) naw.style.display = 'none';
+  root.querySelectorAll('.modal-backdrop, .tour-ov, .naw-overlay, .info-pop').forEach(function(m){ m.classList.remove('show'); });
+  ['aboutModal','detailModal','gcWelcomeModal','gcSnapHelpModal','tourOv','featOv','workshopWizard','customMethodModal','storyOv','filmOv','saveOv'].forEach(function(id){ var el = root.querySelector('#'+id); if (el) el.classList.remove('show'); });
+  var fv = root.querySelector('#filmVideo'); if (fv){ fv.removeAttribute('src'); fv.removeAttribute('poster'); }
+  var fo = root.querySelector('#filmOffline'); if (fo) fo.hidden = true;
+  ['pathWrap','assessGrid','methodsGrid','galleryGrid','glosGrid','aggResults','aggFiles','prioGrid','scenGrid','tcaPlanComps','polAccordion','polDocs','polTimeline','snapList','areaDeepGrid','fwAtlas','cwheelSvg'].forEach(function(id){ var el = root.querySelector('#'+id); if (el) el.innerHTML = ''; });
+  return '<!DOCTYPE html>\n' + root.outerHTML;
+}
+function gcDownloadBlob(blob, name){
+  var url = URL.createObjectURL(blob); var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
 function gcSaveToolkit(){
+  var ov = document.getElementById('saveOv');
+  if (!ov) return gcSaveToolkitHtml();
+  var st = document.getElementById('saveZipState'); if (st) { st.textContent = ''; st.className = 'save-state'; }
+  ov.classList.add('show');
+}
+function gcCloseSave(){ var ov = document.getElementById('saveOv'); if (ov && !ov.dataset.busy) ov.classList.remove('show'); }
+function gcSaveToolkitHtml(){
   var de = state.lang === 'de';
   try {
-    var root = document.documentElement.cloneNode(true);
-    var body = root.querySelector('body');
-    if (body){ body.removeAttribute('data-persona'); body.classList.remove('locked-edition'); }
-    root.removeAttribute('data-theme');
-    root.querySelectorAll('.view').forEach(function(v){ if (v.id === 'v-intro') v.classList.add('active'); else v.classList.remove('active'); });
-    var naw = root.querySelector('#naWizModal'); if (naw) naw.style.display = 'none';
-    root.querySelectorAll('.modal-backdrop, .tour-ov, .naw-overlay, .info-pop').forEach(function(m){ m.classList.remove('show'); });
-    ['aboutModal','detailModal','gcWelcomeModal','gcSnapHelpModal','tourOv','featOv','workshopWizard','customMethodModal','storyOv'].forEach(function(id){ var el = root.querySelector('#'+id); if (el) el.classList.remove('show'); });
-    ['pathWrap','assessGrid','methodsGrid','galleryGrid','glosGrid','aggResults','aggFiles','prioGrid','scenGrid','tcaPlanComps','polAccordion','polDocs','polTimeline','snapList','areaDeepGrid','fwAtlas','cwheelSvg'].forEach(function(id){ var el = root.querySelector('#'+id); if (el) el.innerHTML = ''; });
-    var html = '<!DOCTYPE html>\n' + root.outerHTML;
-    var blob = new Blob([html], { type:'text/html' });
-    var url = URL.createObjectURL(blob); var a = document.createElement('a');
-    a.href = url; a.download = 'GreenComp-TCA-Planner.html';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    gcDownloadBlob(new Blob([gcBuildToolkitHtml()], { type:'text/html' }), 'GreenComp-TCA-Planner.html');
+    gcCloseSave();
     showToast(de ? '💾 Toolkit gespeichert — HTML-Datei liegt in deinen Downloads. An einen festen Ort legen und immer diese Kopie öffnen.' : '💾 Toolkit saved — the HTML file is in your Downloads. Put it somewhere permanent and always open that copy.');
-  } catch(e){ showToast((state.lang==='de'?'❌ Speichern fehlgeschlagen: ':'❌ Save failed: ')+(e&&e.message||e)); }
+  } catch(e){ showToast((de?'❌ Speichern fehlgeschlagen: ':'❌ Save failed: ')+(e&&e.message||e)); }
+}
+// Minimal ZIP writer (method "store": the MP4 is already compressed), CRC-32 per entry
+var GC_CRC_T = null;
+function gcCrc32(u8){
+  if (!GC_CRC_T){ GC_CRC_T = new Uint32Array(256); for (var n = 0; n < 256; n++){ var c = n; for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); GC_CRC_T[n] = c >>> 0; } }
+  var crc = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) crc = GC_CRC_T[(crc ^ u8[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function gcZip(files){ // files: [{name, data: Uint8Array}]
+  var enc = new TextEncoder(), parts = [], central = [], offset = 0;
+  var d = new Date(), time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1),
+      date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  files.forEach(function(f){
+    var nm = enc.encode(f.name), crc = gcCrc32(f.data), sz = f.data.length;
+    var lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, time, true); lh.setUint16(12, date, true); lh.setUint32(14, crc, true); lh.setUint32(18, sz, true); lh.setUint32(22, sz, true);
+    lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    parts.push(lh.buffer, nm, f.data);
+    var ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, time, true); ch.setUint16(14, date, true); ch.setUint32(16, crc, true); ch.setUint32(20, sz, true); ch.setUint32(24, sz, true);
+    ch.setUint16(28, nm.length, true); ch.setUint32(42, offset, true);
+    central.push(ch.buffer, nm);
+    offset += 30 + nm.length + sz;
+  });
+  var cdSize = central.reduce(function(n, b){ return n + (b.byteLength || b.length); }, 0);
+  var end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob(parts.concat(central, [end.buffer]), { type: 'application/zip' });
+}
+async function gcFetchMedia(name, onProgress){
+  var urls = /^https?:$/.test(location.protocol) ? ['media/' + name, GC_FILM_BASE + name] : [GC_FILM_BASE + name];
+  var lastErr = null;
+  for (var u = 0; u < urls.length; u++){
+    try {
+      var r = await fetch(urls[u], { cache: 'force-cache' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var total = +r.headers.get('content-length') || 0;
+      if (!r.body || !r.body.getReader) return new Uint8Array(await r.arrayBuffer());
+      var reader = r.body.getReader(), chunks = [], got = 0;
+      for (;;){ var x = await reader.read(); if (x.done) break; chunks.push(x.value); got += x.value.length; if (onProgress) onProgress(got, total); }
+      var out = new Uint8Array(got), pos = 0; chunks.forEach(function(c){ out.set(c, pos); pos += c.length; });
+      return out;
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('download failed');
+}
+async function gcSaveToolkitZip(){
+  var de = state.lang === 'de', ov = document.getElementById('saveOv'), st = document.getElementById('saveZipState');
+  var say = function(t, cls){ if (st){ st.textContent = t; st.className = 'save-state' + (cls ? ' ' + cls : ''); } };
+  if (ov) { ov.dataset.busy = '1'; ov.classList.add('busy'); }
+  try {
+    say(de ? 'Film wird geladen …' : 'Loading the film …');
+    var film = await gcFetchMedia('greencomp-film.mp4', function(got, total){
+      if (total) say((de ? 'Film wird geladen … ' : 'Loading the film … ') + Math.round(got / total * 100) + ' %');
+    });
+    var poster = null; try { poster = await gcFetchMedia('greencomp-film-poster.jpg'); } catch(e){}
+    say(de ? 'ZIP wird erstellt …' : 'Building the ZIP …');
+    var enc = new TextEncoder(), dir = 'GreenComp-TCA-Planner/';
+    var readme = de
+      ? 'GreenComp TCA Planner – Toolkit + Film\r\n\r\n1. ZIP-Datei entpacken (nicht nur hineinschauen).\r\n2. GreenComp-TCA-Planner.html öffnen.\r\n3. Den Ordner "media" immer neben der HTML-Datei lassen – dann läuft der Film auch ganz ohne Internet.\r\n\r\nCreated by Michael Kolbe, AIBA Liechtenstein, in the framework of the LTA Sustainability and Greening\r\nhttps://m-kolbe.github.io/GreenComp/\r\n'
+      : 'GreenComp TCA Planner – toolkit + film\r\n\r\n1. Unzip the file (extract it, do not just preview it).\r\n2. Open GreenComp-TCA-Planner.html.\r\n3. Keep the "media" folder next to the HTML file – then the film also plays without internet.\r\n\r\nCreated by Michael Kolbe, AIBA Liechtenstein, in the framework of the LTA Sustainability and Greening\r\nhttps://m-kolbe.github.io/GreenComp/\r\n';
+    var files = [
+      { name: dir + 'GreenComp-TCA-Planner.html', data: enc.encode(gcBuildToolkitHtml()) },
+      { name: dir + (de ? 'LIESMICH.txt' : 'README.txt'), data: enc.encode(readme) },
+      { name: dir + 'media/greencomp-film.mp4', data: film }
+    ];
+    if (poster) files.push({ name: dir + 'media/greencomp-film-poster.jpg', data: poster });
+    gcDownloadBlob(gcZip(files), 'GreenComp-TCA-Planner-with-film.zip');
+    say(de ? '✓ ZIP gespeichert – entpacken und die HTML-Datei öffnen.' : '✓ ZIP saved – unzip it and open the HTML file.', 'ok');
+    showToast(de ? '💾 Toolkit + Film gespeichert (ZIP) — entpacken, Ordner "media" neben der HTML lassen.' : '💾 Toolkit + film saved (ZIP) — unzip it and keep the "media" folder next to the HTML.');
+  } catch(e){
+    say((de ? '⚠ Film konnte nicht geladen werden (Internet nötig). Du kannst das Toolkit trotzdem als HTML speichern. ' : '⚠ Could not load the film (internet needed). You can still save the toolkit as HTML. ') + '(' + (e && e.message || e) + ')', 'err');
+  } finally {
+    if (ov) { delete ov.dataset.busy; ov.classList.remove('busy'); }
+  }
 }
 function exportEdition(persona, config){
   if (!['participant','beneficiary','na'].includes(persona)) return;
@@ -18970,8 +19107,7 @@ function openFilm(){
   if (!ov || !v) return;
   if (!gcFilmInit) {
     gcFilmInit = true;
-    const onWeb = /^https?:$/.test(location.protocol);
-    let useAbs = !onWeb;
+    let useAbs = false;   // first media/ next to the HTML (web or unzipped copy), then the online file
     const set = () => { const b = useAbs ? GC_FILM_BASE : 'media/'; v.poster = b + 'greencomp-film-poster.jpg'; v.src = b + 'greencomp-film.mp4'; };
     v.addEventListener('error', () => {
       if (!useAbs) { useAbs = true; set(); v.load(); v.play().catch(() => {}); }
