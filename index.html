@@ -6429,6 +6429,33 @@ body[data-persona="na"] .na-preview-banner {
   padding: 20px;
 }
 .tour-overlay.show { display: flex; }
+/* Film button + player */
+.hero .hero-cta.hero-film { gap: 10px; padding-left: 10px; }
+.hero-film-play { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #fef08a 0%, #fbbf24 100%); color: #1f2a0d; box-shadow: 0 0 0 4px rgba(254, 240, 138, 0.18); }
+.hero-film-play svg { margin-left: 2px; }
+.hero-film-dur { font-size: 12px; font-weight: 600; opacity: 0.75; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+.film-ov { position: fixed; inset: 0; z-index: 3100; display: none; align-items: center; justify-content: center; padding: 24px;
+  background: radial-gradient(1200px 700px at 50% 30%, rgba(22, 101, 52, 0.55), rgba(5, 25, 15, 0.92)); backdrop-filter: blur(10px); }
+.film-ov.show { display: flex; animation: filmIn 0.25s ease; }
+@keyframes filmIn { from { opacity: 0; } to { opacity: 1; } }
+.film-box { width: min(1120px, 100%); border-radius: 22px; overflow: hidden; background: #0b2d1e; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.film-h { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px 14px; color: #fff;
+  background: linear-gradient(135deg, #14532d 0%, #0f3d24 100%); }
+.film-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #fde68a; }
+.film-title { font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(18px, 2vw, 24px); font-weight: 700; margin-top: 2px; }
+.film-x { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.1);
+  color: #fff; font-size: 16px; cursor: pointer; }
+.film-x:hover { background: rgba(255, 255, 255, 0.22); }
+.film-frame { position: relative; aspect-ratio: 16 / 9; background: #000; }
+.film-frame video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
+.film-offline { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 24px; text-align: center; color: #e7fbe9; background: rgba(5, 25, 15, 0.9); font-size: 14px; }
+.film-offline[hidden] { display: none; }
+.film-offline b { font-size: 17px; }
+.film-foot { padding: 10px 20px 12px; font-size: 12px; color: rgba(231, 251, 233, 0.75); background: #0b2d1e; text-align: center; }
+body.film-open { overflow: hidden; }
+@media (max-width: 640px) { .film-ov { padding: 0; } .film-box { border-radius: 0; } .hero-film-dur { display: none; } }
 .tour-box {
   background: var(--bg-elev);
   border: 1px solid var(--border);
@@ -7110,6 +7137,7 @@ body[data-persona="na"] .na-preview-banner {
       <div class="hero-actions">
         <button class="hero-cta" onclick="switchView('framework')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="Explore the 12 competences">Explore the 12 competences</span></button>
         <button class="hero-cta secondary" onclick="openTour()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span data-i18n="Take the 90-second tour">Take the 90-second tour</span></button>
+        <button class="hero-cta secondary hero-film" onclick="openFilm()" aria-haspopup="dialog"><span class="hero-film-play"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span> <span data-i18n="Watch the film">Watch the film</span> <span class="hero-film-dur">6 min</span></button>
       </div>
     </div>
 
@@ -7885,6 +7913,27 @@ body[data-persona="na"] .na-preview-banner {
 </main>
 
 <!-- Tour Overlay -->
+<!-- Film: integrated video player (the video file lives next to index.html in media/) -->
+<div class="film-ov" id="filmOv" role="dialog" aria-modal="true" aria-labelledby="filmTitle" onclick="if(event.target===this)closeFilm()">
+  <div class="film-box">
+    <div class="film-h">
+      <div>
+        <div class="film-eyebrow" data-i18n="The film · 6 min · English">The film · 6 min · English</div>
+        <div class="film-title" id="filmTitle" data-i18n="From academic paper to everyday practice">From academic paper to everyday practice</div>
+      </div>
+      <button class="film-x" onclick="closeFilm()" aria-label="Close">✕</button>
+    </div>
+    <div class="film-frame">
+      <video id="filmVideo" controls playsinline preload="none"></video>
+      <div class="film-offline" id="filmOffline" hidden>
+        <b data-i18n="The film needs an internet connection.">The film needs an internet connection.</b>
+        <span data-i18n="It is streamed from m-kolbe.github.io/GreenComp – the toolkit itself keeps working offline.">It is streamed from m-kolbe.github.io/GreenComp – the toolkit itself keeps working offline.</span>
+      </div>
+    </div>
+    <div class="film-foot" data-i18n="Created by Michael Kolbe, AIBA Liechtenstein, in the framework of the LTA Sustainability and Greening">Created by Michael Kolbe, AIBA Liechtenstein, in the framework of the LTA Sustainability and Greening</div>
+  </div>
+</div>
+
 <div class="tour-overlay" id="tourOv">
   <div class="tour-box">
     <div class="tour-h">
@@ -12949,6 +12998,11 @@ const TRANSLATIONS = {
   "Best when you already know GreenComp and want to pick the 12 competences directly.": "Am besten wenn du GreenComp kennst und die 12 Kompetenzen direkt auswählen willst.",
   "GreenComp in EU Policy": "GreenComp in der EU-Politik",
   "Created by Michael Kolbe": "Erstellt von Michael Kolbe",
+  "Watch the film": "Film ansehen",
+  "The film · 6 min · English": "Der Film · 6 Min. · Englisch",
+  "From academic paper to everyday practice": "Vom akademischen Papier zur gelebten Praxis",
+  "The film needs an internet connection.": "Für den Film braucht es eine Internetverbindung.",
+  "It is streamed from m-kolbe.github.io/GreenComp – the toolkit itself keeps working offline.": "Er wird von m-kolbe.github.io/GreenComp gestreamt – das Toolkit selbst funktioniert weiterhin offline.",
   "Created by Michael Kolbe,": "Erstellt von Michael Kolbe,",
   ", in the framework of the LTA Sustainability and Greening": ", im Rahmen der LTA Sustainability and Greening",
   "Created by Michael Kolbe, AIBA Liechtenstein, in the framework of the LTA Sustainability and Greening": "Erstellt von Michael Kolbe, AIBA Liechtenstein, im Rahmen der LTA Sustainability and Greening",
@@ -18908,6 +18962,35 @@ function getTourSlides(){
   return all.filter(s => !s.for || s.for.indexOf('all') !== -1 || s.for.indexOf(filterBy) !== -1);
 }
 let tourIdx = 0;
+// === Film player: plays media/greencomp-film.mp4 next to index.html; saved / offline copies fall back to the online file ===
+const GC_FILM_BASE = 'https://m-kolbe.github.io/GreenComp/media/';
+let gcFilmInit = false;
+function openFilm(){
+  const ov = document.getElementById('filmOv'), v = document.getElementById('filmVideo'), off = document.getElementById('filmOffline');
+  if (!ov || !v) return;
+  if (!gcFilmInit) {
+    gcFilmInit = true;
+    const onWeb = /^https?:$/.test(location.protocol);
+    let useAbs = !onWeb;
+    const set = () => { const b = useAbs ? GC_FILM_BASE : 'media/'; v.poster = b + 'greencomp-film-poster.jpg'; v.src = b + 'greencomp-film.mp4'; };
+    v.addEventListener('error', () => {
+      if (!useAbs) { useAbs = true; set(); v.load(); v.play().catch(() => {}); }
+      else if (off) off.hidden = false;
+    });
+    set();
+  }
+  ov.classList.add('show'); document.body.classList.add('film-open');
+  try { const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {}
+}
+function closeFilm(){
+  const ov = document.getElementById('filmOv'), v = document.getElementById('filmVideo');
+  if (v) { try { v.pause(); } catch (e) {} }
+  if (ov) ov.classList.remove('show');
+  document.body.classList.remove('film-open');
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') { const ov = document.getElementById('filmOv'); if (ov && ov.classList.contains('show')) closeFilm(); }
+});
 function openTour(){ tourIdx = 0; renderTour(); document.getElementById('tourOv').classList.add('show'); }
 function closeTour(){ document.getElementById('tourOv').classList.remove('show'); }
 function tourPrev(){ if (tourIdx > 0){ tourIdx--; renderTour(); } }
